@@ -1,0 +1,20 @@
+# mac
+.DS_STORE
+
+# vs code
+.vscode/
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache
+
+# build
+*.egg-info
+dist/
+~/.pypirc
+build/
+
+# sandbox - ignore all except for _template notebook files
+tests/sandbox/*
+!*_template.ipynb
