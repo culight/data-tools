@@ -10,7 +10,6 @@ import random
 import logging
 import os
 
-from pyspark import SparkConf
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
 from pyspark.context import SparkContext
@@ -21,7 +20,7 @@ from .config import load_config
 from .io.db import DBConnector
 from .utils.schema import SchemaReader, convert_ints, convert_uuids
 from .utils.secrets import SecretManger
-from .validation import DataValidator, DataValidatorDataset
+# from .validation import DataValidator
 
 logging.basicConfig(
     format="%(asctime)s - %(message)s", level=os.environ.get("LOGLEVEL", "INFO")
@@ -54,6 +53,7 @@ class SparkApp(SparkSession):
         conf: SparkConf = None,
         local: bool = False,
         bq_key: str = None,
+        log_level: str="WARN"
     ):
         self.sparkapp_params = {
             "master": "yarn",
@@ -83,7 +83,7 @@ class SparkApp(SparkSession):
             self.schema_reader = SchemaReader()
 
             LOGGER.info("Initializing validator client")
-            self.validator_client = DataValidator(base_path=None, sparkapp=self)
+            # self.validator_client = DataValidator(base_path=None, sparkapp=self)
 
             super().__init__(self._create_local_spark_context(bq_key=bq_key, conf=conf))
         else:
@@ -107,7 +107,7 @@ class SparkApp(SparkSession):
 
             LOGGER.info("Initializing validator client")
             bucket_uri = self.sparkapp_params.get("bucket_uri")
-            self.validator_client = DataValidator(base_path=bucket_uri, sparkapp=self)
+            # self.validator_client = DataValidator(base_path=bucket_uri, sparkapp=self)
 
             LOGGER.info("Setting database parameters")
             assert self.sparkapp_params[
@@ -116,6 +116,9 @@ class SparkApp(SparkSession):
             self.db_params = self.secret_manager.get_database_params(
                 version_id=self.sparkapp_params["version_id"]
             )
+
+        # set logging level
+        self.sparkContext.setLogLevel(log_level)
 
     def __eq__(self, other):
         assert getattr(other, "app_name"), "Object {} is incompatible".format(other)
@@ -376,23 +379,23 @@ class SparkApp(SparkSession):
             LOGGER.exception(f"Error writing table {table} to BigQuery: {e}")
 
         # capture and write metadata, if applicable
-        if self.sparkapp_params["capture_metadata"]:
-            LOGGER.info("Writing metadata to BigQuery")
-            meta_df = self.validator_client.get_meta_table(
-                df=df,
-                table=table,
-                script_type=dataset,
-                branch_name=self.sparkapp_params["branch_name"],
-                dataset="meta",
-            )
-            # prevent infinite recursion
-            self.sparkapp_params["capture_metadata"] = not self.sparkapp_params[
-                "capture_metadata"
-            ]
-            self.write_bq(df=meta_df, dataset="meta", table=table, save_mode="append")
-            self.sparkapp_params["capture_metadata"] = not self.sparkapp_params[
-                "capture_metadata"
-            ]
+        # if self.sparkapp_params["capture_metadata"]:
+        #     LOGGER.info("Writing metadata to BigQuery")
+        #     meta_df = self.validator_client.get_meta_table(
+        #         df=df,
+        #         table=table,
+        #         script_type=dataset,
+        #         branch_name=self.sparkapp_params["branch_name"],
+        #         dataset="meta",
+        #     )
+        #     # prevent infinite recursion
+        #     self.sparkapp_params["capture_metadata"] = not self.sparkapp_params[
+        #         "capture_metadata"
+        #     ]
+        #     self.write_bq(df=meta_df, dataset="meta", table=table, save_mode="append")
+        #     self.sparkapp_params["capture_metadata"] = not self.sparkapp_params[
+        #         "capture_metadata"
+        #     ]
 
     def write_db(self, df: DataFrame, db: DBConnector, table_name: str):
         db.write_table(df, table_name=table_name)
