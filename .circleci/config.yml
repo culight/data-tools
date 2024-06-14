@@ -10,7 +10,7 @@ jobs:
           command: pip install -r requirements.txt
       - run:
           name: Unit Tests
-          command: pytest tests/unit/*
+          command: pytest --no-header -v tests/unit/*
       - store_test_results:
           path: test-results
       - store_artifacts:
