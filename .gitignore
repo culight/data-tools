@@ -160,4 +160,4 @@ cython_debug/
 #.idea/
 
 # large files
-*.jar
+data_tools/io/spark_bq/*.json
