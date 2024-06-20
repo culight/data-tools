@@ -9,7 +9,7 @@ else:
     version = VERSION
 
 setup(
-    name="data_tools",
+    name="data_tools_moton",
     version=version,
     description="Standalone tools package for ETL development",
     author="Rick Moton",
@@ -19,6 +19,7 @@ setup(
         "data_tools.io",
         "data_tools.utils",
     ],
+    python_requires="3.6.9",
     include_package_data=True,
     zip_safe=False,
 )
