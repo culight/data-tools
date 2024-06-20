@@ -1,5 +1,16 @@
 version: 2.1
 jobs:
+  code_analysis:
+    docker:
+      - image: circleci/python:3.9.6
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: pip install -r requirements.txt
+      - run:
+          name: Code Analysis
+          command: pylint data_tools/
   run_tests:
     docker:
       - image: circleci/python:3.9.6
