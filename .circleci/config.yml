@@ -30,4 +30,5 @@ jobs:
 workflows:
   build_test:
     jobs:
+      - code_analysis
       - run_tests
